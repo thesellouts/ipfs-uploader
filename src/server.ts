@@ -41,7 +41,23 @@ async function uploadToIPFS(buffer: Buffer, filename: string): Promise<string> {
 }
 
 // Use CORS middleware
-app.use(cors())
+// Get allowed origins from environment variables
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
+
+// CORS middleware with dynamic origin
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+  })
+)
 
 app.post(
   '/upload-to-ipfs',
